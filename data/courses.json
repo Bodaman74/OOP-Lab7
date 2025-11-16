@@ -1,0 +1,1 @@
+[{"courseId":"C101","title":"Java Basics","description":"Introduction to Java","instructorId":"I001","lessons":[{"lessonId":"L101","title":"Variables and Data Types","content":"Learn about int, double, String in Java.","resources":[]}],"students":["S001"],"progress":{"S001":["L101"]}}]
