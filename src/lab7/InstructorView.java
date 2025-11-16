@@ -55,7 +55,7 @@ public class InstructorView extends JFrame {
                 if (newContent != null && !newContent.isEmpty()) {
                     lesson.setContent(newContent);
                     db.editLessonInCourse(courseId, lesson);
-                    loadLessons(); // تحديث الواجهة
+                    loadLessons(); // update
                 }
             });
 
@@ -64,7 +64,7 @@ public class InstructorView extends JFrame {
                 int confirm = JOptionPane.showConfirmDialog(this, "Are you sure?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
                     db.deleteLessonFromCourse(courseId, lesson.getLessonId());
-                    loadLessons(); // تحديث الواجهة
+                    loadLessons(); // update
                 }
             });
 

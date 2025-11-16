@@ -57,7 +57,7 @@ public class StudentView extends JFrame {
 
             completeBtn.addActionListener(e -> {
                 db.markLessonCompletedInCourse(courseId, studentId, lesson.getLessonId());
-                loadLessons(); // تحديث الواجهة بعد الإنجاز
+                loadLessons(); // update
             });
 
             JPanel btnPanel = new JPanel();
