@@ -1,0 +1,163 @@
+package Lab7;
+
+import java.io.*;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class AuthManager {
+
+    private final String USERS_FILE = "users.json";
+    private List<user> users = new ArrayList<>();
+    private user loggeduser = null;
+
+    public AuthManager() {
+        loadusers();
+    }
+
+    public user getLoggeduser() {
+        return loggeduser;
+    }
+
+    private void loadusers() {
+        try {
+            File file = new File(USERS_FILE);
+            if (!file.exists()) {
+                saveusers();
+                return;
+            }
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            StringBuilder sb = new StringBuilder();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            br.close();
+
+            String json = sb.toString().trim();
+            if (json.length() < 5) return;
+
+            json = json.substring(1, json.length() - 1);
+
+            String[] objs = json.split("\\},\\{");
+
+            users.clear();
+
+            for (String o : objs) {
+                o = o.replace("{", "").replace("}", "");
+
+                String userId   = get(o, "userId");
+                String username = get(o, "username");
+                String email    = get(o, "email");
+                String passhash = get(o, "passhash");
+                String role     = get(o, "role");
+
+                users.add(new user(userId, username, email, passhash, role));
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error loading users!");
+        }
+    }
+
+    private String get(String obj, String key) {
+        try {
+            String search = "\"" + key + "\":\"";
+            int s = obj.indexOf(search) + search.length();
+            int e = obj.indexOf("\"", s);
+            return obj.substring(s, e);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private void saveusers() {
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(USERS_FILE));
+            bw.write("[");
+
+            for (int i = 0; i < users.size(); i++) {
+                user u = users.get(i);
+
+                bw.write("{");
+                bw.write("\"userId\":\"" + u.getUserId() + "\",");
+                bw.write("\"username\":\"" + u.getUserName() + "\",");
+                bw.write("\"email\":\"" + u.getEmail() + "\",");
+                bw.write("\"passhash\":\"" + u.getPasswordHash() + "\",");
+                bw.write("\"role\":\"" + u.getRole() + "\"");
+                bw.write("}");
+
+                if (i < users.size() - 1) bw.write(",");
+            }
+
+            bw.write("]");
+            bw.close();
+        } catch (Exception e) {
+            System.out.println("Error saving users!");
+        }
+    }
+
+    public String signup(String username, String email, String password, String role) {
+
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            return "All fields are required!";
+        }
+
+        if (!email.contains("@") || !email.contains(".")) {
+            return "Invalid email!";
+        }
+
+        for (user u : users) {
+            if (u.getUserName().equalsIgnoreCase(username)) {
+                return "username already exists!";
+            }
+        }
+
+        String hashed = hashPassword(password);
+        String id = UUID.randomUUID().toString();
+
+        user newuser = new user(id, username, email, hashed, role);
+
+        users.add(newuser);
+        saveusers();
+
+        return "SUCCESS";
+    }
+
+    public String login(String username, String password) {
+        String hashed = hashPassword(password);
+
+        for (user u : users) {
+            if (u.getUserName().equalsIgnoreCase(username)
+                    && u.getPasswordHash().equals(hashed)) {
+
+                loggeduser = u;
+                return "SUCCESS";
+            }
+        }
+
+        return "Wrong username or password!";
+    }
+
+    public void logout() {
+        loggeduser = null;
+    }
+
+    private String hashPassword(String pass) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(pass.getBytes());
+
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) sb.append(String.format("%02x", b));
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+}
